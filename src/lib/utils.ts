@@ -1,4 +1,5 @@
 import { Transaction } from "./supabase.ts";
+import * as XLSX from 'xlsx';
 
 export const exportToCSV = (transactions: Transaction[]) => {
   if (transactions.length === 0) {
@@ -8,38 +9,35 @@ export const exportToCSV = (transactions: Transaction[]) => {
 
   const headers = [
     "Tanggal",
+    "Jenis Transaksi",
     "Kategori",
-    "Tipe",
     "Nominal",
-    "Keterangan",
-    "Dibuat",
   ];
+  
   const rows = transactions.map((t) => [
-    t.tanggal,
-    t.kategori,
+    // Convert YYYY-MM-DD to DD/MM/YYYY
+    t.tanggal.split("-").reverse().join("/"),
     t.tipe,
+    t.kategori,
     t.nominal.toString(),
-    t.keterangan || "",
-    t.created_at,
   ]);
 
-  const csvContent = [
-    headers.join(","),
-    ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
-  ].join("\n");
-
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.setAttribute("href", url);
-  link.setAttribute(
-    "download",
-    `transaksi-${new Date().toISOString().split("T")[0]}.csv`,
-  );
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  // Create workbook
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  
+  // Set column widths
+  ws['!cols'] = [
+    { width: 15 }, // Tanggal
+    { width: 20 }, // Jenis Transaksi
+    { width: 20 }, // Kategori
+    { width: 15 }, // Nominal
+  ];
+  
+  XLSX.utils.book_append_sheet(wb, ws, "Data Transaksi");
+  
+  // Generate and download file
+  XLSX.writeFile(wb, `transaksi-${new Date().toISOString().split("T")[0]}.xlsx`);
 };
 
 export const filterTransactions = (

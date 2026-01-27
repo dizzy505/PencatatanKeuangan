@@ -1,4 +1,5 @@
 import { Transaction } from "./supabase.ts";
+import * as XLSX from 'xlsx';
 
 export interface ImportedRow {
   tanggal?: string;
@@ -70,8 +71,21 @@ export const parseExcelFile = (file: File): Promise<ImportedRow[]> => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const text = event.target?.result as string;
-        const rows = parseCSV(text);
+        const result = event.target?.result;
+        let rows: string[][] = [];
+        
+        // Check if it's an Excel file (.xlsx)
+        if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+          const workbook = XLSX.read(result, { type: 'binary' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as string[][];
+          rows = jsonData;
+        } else {
+          // Handle as CSV
+          const text = result as string;
+          rows = parseCSV(text);
+        }
 
         if (rows.length === 0) {
           reject(new Error("File kosong"));
@@ -80,7 +94,7 @@ export const parseExcelFile = (file: File): Promise<ImportedRow[]> => {
 
         // Get headers from first row
         const headers = rows[0].map((h) => normalizeColumnName(h));
-        const data: ImportedRow[] = [];
+        const importData: ImportedRow[] = [];
 
         // Parse data rows
         for (let i = 1; i < rows.length; i++) {
@@ -96,24 +110,42 @@ export const parseExcelFile = (file: File): Promise<ImportedRow[]> => {
           }
 
           if (Object.keys(obj).length > 0) {
-            data.push(obj);
+            importData.push(obj);
           }
         }
 
-        resolve(data);
-      } catch {
+        resolve(importData);
+      } catch (error) {
         reject(new Error("Gagal membaca file"));
       }
     };
     reader.onerror = () => {
       reject(new Error("Gagal membaca file"));
     };
-    reader.readAsText(file);
+    
+    // Read as binary for Excel files, text for CSV
+    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+      reader.readAsBinaryString(file);
+    } else {
+      reader.readAsText(file);
+    }
   });
 };
 
 export const normalizeColumnName = (name: string): string => {
-  return name.toLowerCase().trim().replace(/\s+/g, "_").replace(/[^\w]/g, "");
+  const normalized = name.toLowerCase().trim().replace(/\s+/g, "_").replace(/[^\w]/g, "");
+  
+  // Special mappings for Indonesian column names
+  const columnMappings: Record<string, string> = {
+    "tanggal": "tanggal",
+    "jenis_transaksi": "jenis_transaksi",
+    "jenistransaksi": "jenis_transaksi",
+    "kategori": "kategori",
+    "nominal": "nominal",
+    "tipe": "jenis_transaksi", // For backward compatibility
+  };
+  
+  return columnMappings[normalized] || normalized;
 };
 
 export const convertDateFormat = (dateStr: string): string => {
@@ -180,29 +212,44 @@ export const validateImportData = (rows: ImportedRow[]): ImportResult => {
 
     // Check tanggal
     if (!normalized.tanggal) {
-      errors_.push('Kolom "tanggal" tidak boleh kosong');
+      errors_.push('Kolom "Tanggal" tidak boleh kosong');
     } else {
       try {
         const convertedDate = convertDateFormat(String(normalized.tanggal));
         const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
         if (!dateRegex.test(convertedDate)) {
-          errors_.push("Format tanggal tidak valid");
+          errors_.push("Format tanggal tidak valid (gunakan DD/MM/YYYY)");
         } else {
           normalized.tanggal = convertedDate;
         }
       } catch {
-        errors_.push("Format tanggal tidak valid");
+        errors_.push("Format tanggal tidak valid (gunakan DD/MM/YYYY)");
+      }
+    }
+
+    // Check jenis_transaksi
+    if (!normalized.jenis_transaksi) {
+      errors_.push('Kolom "Jenis Transaksi" tidak boleh kosong');
+    } else {
+      const convertedType = convertTransactionType(String(normalized.jenis_transaksi));
+      const validTypes = ["Pemasukan", "Pengeluaran"];
+      if (!validTypes.includes(convertedType)) {
+        errors_.push(
+          'Jenis Transaksi harus "Pemasukan" atau "Pengeluaran"',
+        );
+      } else {
+        normalized.tipe = convertedType;
       }
     }
 
     // Check kategori
     if (!normalized.kategori) {
-      errors_.push('Kolom "kategori" tidak boleh kosong');
+      errors_.push('Kolom "Kategori" tidak boleh kosong');
     }
 
     // Check nominal
     if (!normalized.nominal) {
-      errors_.push('Kolom "nominal" tidak boleh kosong');
+      errors_.push('Kolom "Nominal" tidak boleh kosong');
     } else {
       try {
         const amount = cleanNominal(normalized.nominal);
@@ -213,21 +260,6 @@ export const validateImportData = (rows: ImportedRow[]): ImportResult => {
         }
       } catch {
         errors_.push("Nominal tidak valid");
-      }
-    }
-
-    // Check tipe
-    if (!normalized.tipe) {
-      errors_.push('Kolom "tipe" tidak boleh kosong');
-    } else {
-      const convertedType = convertTransactionType(String(normalized.tipe));
-      const validTypes = ["Pemasukan", "Pengeluaran"];
-      if (!validTypes.includes(convertedType)) {
-        errors_.push(
-          'Tipe harus "Pemasukan" atau "Pengeluaran" (atau "Uang Masuk"/"Uang Keluar")',
-        );
-      } else {
-        normalized.tipe = convertedType;
       }
     }
 
@@ -250,7 +282,7 @@ export const prepareTransactionsForInsert = (
   return rows.map((row) => ({
     tanggal: String(row.tanggal),
     kategori: String(row.kategori),
-    keterangan: row.keterangan ? String(row.keterangan) : "",
+    keterangan: "", // Keterangan tidak ada di format baru
     nominal: parseFloat(String(row.nominal)),
     tipe: String(row.tipe) as "Pemasukan" | "Pengeluaran",
     is_recurring: false,
