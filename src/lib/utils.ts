@@ -1,4 +1,4 @@
-import { Transaction } from "./supabase";
+import { Transaction } from "./supabase.ts";
 
 export const exportToCSV = (transactions: Transaction[]) => {
   if (transactions.length === 0) {

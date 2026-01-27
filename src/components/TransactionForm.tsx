@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { supabase } from "../lib/supabase";
-import { validateTransaction, validateRecurringDate } from "../lib/validation";
+import { storageService } from "../lib/storage.ts";
+import { validateTransaction, validateRecurringDate } from "../lib/validation.ts";
 
 interface TransactionFormProps {
   onSuccess: () => void;
@@ -74,20 +74,16 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
     setLoading(true);
 
     try {
-      const { error } = await supabase.from("transactions").insert([
-        {
-          tipe,
-          tanggal,
-          kategori,
-          keterangan,
-          nominal: parseFloat(nominal),
-          is_recurring: isRecurring,
-          recurring_frequency: isRecurring ? recurringFrequency : null,
-          recurring_end_date: isRecurring ? recurringEndDate : null,
-        },
-      ]);
-
-      if (error) throw error;
+      storageService.saveTransaction({
+        tipe,
+        tanggal,
+        kategori,
+        keterangan,
+        nominal: parseFloat(nominal),
+        is_recurring: isRecurring,
+        recurring_frequency: isRecurring ? (recurringFrequency as "daily" | "weekly" | "monthly" | "yearly") : null,
+        recurring_end_date: isRecurring ? recurringEndDate : null,
+      });
 
       setKategori("");
       setKeterangan("");

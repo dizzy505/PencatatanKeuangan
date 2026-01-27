@@ -1,4 +1,4 @@
-import { Transaction } from "./supabase";
+import { Transaction } from "./supabase.ts";
 
 export interface ImportedRow {
   tanggal?: string;
@@ -101,7 +101,7 @@ export const parseExcelFile = (file: File): Promise<ImportedRow[]> => {
         }
 
         resolve(data);
-      } catch (error) {
+      } catch {
         reject(new Error("Gagal membaca file"));
       }
     };

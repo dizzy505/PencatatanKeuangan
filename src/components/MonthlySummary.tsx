@@ -1,6 +1,6 @@
 import { Calendar } from "lucide-react";
-import { Transaction } from "../lib/supabase";
-import { getMonthlySummary } from "../lib/utils";
+import { Transaction } from "../lib/supabase.ts";
+import { getMonthlySummary } from "../lib/utils.ts";
 
 interface MonthlySummaryProps {
   transactions: Transaction[];

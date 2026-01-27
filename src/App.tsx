@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { BookOpen } from "lucide-react";
-import { supabase, Transaction } from "./lib/supabase";
-import { getCurrentUser, logout, User } from "./lib/auth";
+import { Transaction } from "./lib/supabase.ts";
+import { getCurrentUser, logout, User } from "./lib/auth.ts";
+import { storageService } from "./lib/storage.ts";
 import Login from "./components/Login";
 import { Dashboard } from "./components/Dashboard";
 import { TransactionForm } from "./components/TransactionForm";
@@ -12,7 +13,7 @@ import { MonthlySummary } from "./components/MonthlySummary";
 import { CategoryBreakdown } from "./components/CategoryBreakdown";
 import { EditTransactionModal } from "./components/EditTransactionModal";
 import { ImportTransactionModal } from "./components/ImportTransactionModal";
-import { filterTransactions } from "./lib/utils";
+import { filterTransactions } from "./lib/utils.ts";
 
 function App() {
   const [user, setUser] = useState<User | null>(getCurrentUser());
@@ -29,15 +30,10 @@ function App() {
     searchQuery: "",
   });
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = () => {
     try {
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("*")
-        .order("tanggal", { ascending: false });
-
-      if (error) throw error;
-      setTransactions(data || []);
+      const data = storageService.getTransactions();
+      setTransactions(data);
     } catch (error) {
       console.error("Error fetching transactions:", error);
     } finally {
@@ -62,12 +58,10 @@ function App() {
     if (!confirm("Yakin ingin menghapus transaksi ini?")) return;
 
     try {
-      const { error } = await supabase
-        .from("transactions")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
+      const success = storageService.deleteTransaction(id);
+      if (!success) {
+        throw new Error("Transaksi tidak ditemukan");
+      }
       fetchTransactions();
     } catch (error) {
       console.error("Error deleting transaction:", error);
@@ -99,15 +93,10 @@ function App() {
     if (!editingTransaction) return;
 
     try {
-      const { error } = await supabase
-        .from("transactions")
-        .update({
-          ...updatedData,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", editingTransaction.id);
-
-      if (error) throw error;
+      const success = storageService.updateTransaction(editingTransaction.id, updatedData);
+      if (!success) {
+        throw new Error("Transaksi tidak ditemukan");
+      }
       setEditingTransaction(null);
       fetchTransactions();
     } catch (error) {
@@ -120,11 +109,25 @@ function App() {
     transactions: Partial<Transaction>[],
   ) => {
     try {
-      const { error } = await supabase
-        .from("transactions")
-        .insert(transactions);
+      // Convert partial transactions to full transactions
+      const fullTransactions: Transaction[] = transactions.map((t) => ({
+        id: storageService.generateId(),
+        tanggal: t.tanggal || new Date().toISOString().split('T')[0],
+        kategori: t.kategori || '',
+        keterangan: t.keterangan || '',
+        nominal: t.nominal || 0,
+        tipe: t.tipe || 'Pengeluaran',
+        is_recurring: t.is_recurring || false,
+        recurring_frequency: t.recurring_frequency || null,
+        recurring_end_date: t.recurring_end_date || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }));
 
-      if (error) throw error;
+      // Get existing transactions and add new ones
+      const existingTransactions = storageService.getTransactions();
+      const allTransactions = [...existingTransactions, ...fullTransactions];
+      storageService.saveTransactions(allTransactions);
       fetchTransactions();
     } catch (error) {
       console.error("Error importing transactions:", error);

@@ -1,6 +1,6 @@
 import { BarChart3, TrendingUp, TrendingDown } from "lucide-react";
-import { Transaction } from "../lib/supabase";
-import { getStatistics } from "../lib/utils";
+import { Transaction } from "../lib/supabase.ts";
+import { getStatistics } from "../lib/utils.ts";
 
 interface StatisticsPanelProps {
   transactions: Transaction[];

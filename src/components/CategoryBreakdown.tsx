@@ -1,6 +1,6 @@
 import { PieChart } from "lucide-react";
-import { Transaction } from "../lib/supabase";
-import { getCategoryBreakdown } from "../lib/utils";
+import { Transaction } from "../lib/supabase.ts";
+import { getCategoryBreakdown } from "../lib/utils.ts";
 
 interface CategoryBreakdownProps {
   transactions: Transaction[];

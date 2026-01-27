@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { useState } from "react";
-import { Transaction } from "../lib/supabase";
-import { validateTransaction, validateRecurringDate } from "../lib/validation";
+import { Transaction } from "../lib/supabase.ts";
+import { validateTransaction, validateRecurringDate } from "../lib/validation.ts";
 
 interface EditTransactionModalProps {
   transaction: Transaction;

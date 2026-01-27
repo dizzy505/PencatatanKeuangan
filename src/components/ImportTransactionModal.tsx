@@ -5,9 +5,9 @@ import {
   validateImportData,
   prepareTransactionsForInsert,
   ImportedRow,
-} from "../lib/excel-import";
-import { Transaction } from "../lib/supabase";
-import { createExcelTemplate } from "../lib/excel-export";
+} from "../lib/excel-import.ts";
+import { Transaction } from "../lib/supabase.ts";
+import { createExcelTemplate } from "../lib/excel-export.ts";
 
 interface ImportTransactionModalProps {
   onSuccess: (count: number) => void;

@@ -6,8 +6,8 @@ import {
   Download,
   Upload,
 } from "lucide-react";
-import { Transaction } from "../lib/supabase";
-import { exportToCSV } from "../lib/utils";
+import { Transaction } from "../lib/supabase.ts";
+import { exportToCSV } from "../lib/utils.ts";
 
 interface TransactionListProps {
   transactions: Transaction[];

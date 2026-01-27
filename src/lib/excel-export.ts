@@ -1,4 +1,4 @@
-import { Transaction } from "./supabase";
+import { Transaction } from "./supabase.ts";
 
 export const createExcelTemplate = () => {
   // Create CSV format for template

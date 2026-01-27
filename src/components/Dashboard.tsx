@@ -1,5 +1,5 @@
 import { Wallet, TrendingUp, TrendingDown } from "lucide-react";
-import { Transaction } from "../lib/supabase";
+import { Transaction } from "../lib/supabase.ts";
 
 interface DashboardProps {
   transactions: Transaction[];
