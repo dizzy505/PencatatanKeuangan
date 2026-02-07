@@ -31,8 +31,9 @@ export function ImportTransactionModal({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      if (!selectedFile.name.toLowerCase().endsWith(".csv")) {
-        setImportError("Hanya file CSV (.csv) yang didukung");
+      const fileName = selectedFile.name.toLowerCase();
+      if (!fileName.endsWith(".csv") && !fileName.endsWith(".xlsx") && !fileName.endsWith(".xls")) {
+        setImportError("Hanya file CSV (.csv) atau Excel (.xlsx, .xls) yang didukung");
         setFile(null);
         return;
       }
@@ -49,7 +50,7 @@ export function ImportTransactionModal({
     try {
       const rows = await parseExcelFile(file);
       if (rows.length === 0) {
-        setImportError("File CSV kosong");
+        setImportError("File Excel kosong");
         setLoading(false);
         return;
       }
@@ -58,7 +59,7 @@ export function ImportTransactionModal({
       setValidationResult(result);
       setImportError(null);
     } catch (error) {
-      setImportError(error instanceof Error ? error.message : "Gagal membaca file CSV");
+      setImportError(error instanceof Error ? error.message : "Gagal membaca file Excel");
     } finally {
       setLoading(false);
     }
@@ -86,7 +87,7 @@ export function ImportTransactionModal({
       <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-800">
-            Import Data dari CSV
+            Import Data dari Excel
           </h2>
           <button
             onClick={onClose}
@@ -101,43 +102,44 @@ export function ImportTransactionModal({
             <>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                 <h3 className="font-semibold text-blue-900 mb-2">
-                  Format CSV yang Didukung:
+                  Format Excel yang Didukung:
                 </h3>
                 <div className="text-sm text-blue-800 space-y-2">
                   <p className="font-semibold">
-                    Kolom Wajib (salah satu nama berikut OK):
+                    Kolom Wajib (sesuai format gambar):
                   </p>
                   <ul className="list-disc list-inside space-y-1">
                     <li>
-                      <strong>Tanggal:</strong> "tanggal", "date", "tgl"
+                      <strong>Tanggal:</strong> Header "Tanggal"
                       <br />
                       <span className="ml-4 text-xs">
-                        Format: DD/MM/YYYY atau YYYY-MM-DD
+                        Format: DD/MM/YYYY (contoh: 01/01/2024)
                       </span>
                     </li>
                     <li>
-                      <strong>Kategori:</strong> "kategori", "category", "kat"
-                    </li>
-                    <li>
-                      <strong>Nominal:</strong> "nominal", "amount", "jumlah"
+                      <strong>Jenis Transaksi:</strong> Header "Jenis Transaksi"
                       <br />
                       <span className="ml-4 text-xs">
-                        Format: 50000 atau Rp50.000
+                        Nilai: "Pemasukan" atau "Pengeluaran"
                       </span>
                     </li>
                     <li>
-                      <strong>Tipe:</strong> "tipe", "type", "jenis transaksi"
+                      <strong>Kategori:</strong> Header "Kategori"
                       <br />
                       <span className="ml-4 text-xs">
-                        Nilai: "Pemasukan", "Uang Masuk", "Pengeluaran", "Uang
-                        Keluar"
+                        Contoh: Gaji, Jajan, Makan, Bensin, dll.
+                      </span>
+                    </li>
+                    <li>
+                      <strong>Nominal:</strong> Header "Nominal"
+                      <br />
+                      <span className="ml-4 text-xs">
+                        Format: Angka tanpa format (contoh: 50000)
                       </span>
                     </li>
                   </ul>
-                  <p className="font-semibold mt-2">Kolom Opsional:</p>
-                  <p>
-                    <strong>Keterangan:</strong> "keterangan", "deskripsi",
-                    "desc", "note"
+                  <p className="font-semibold mt-2 text-amber-700">
+                    ⚠️ Pastikan header kolom sesuai dengan format di atas!
                   </p>
                 </div>
               </div>
@@ -146,14 +148,14 @@ export function ImportTransactionModal({
                 <Upload size={32} className="mx-auto mb-2 text-gray-400" />
                 <input
                   type="file"
-                  accept=".csv"
+                  accept=".csv,.xlsx,.xls"
                   onChange={handleFileChange}
                   className="hidden"
                   id="file-input"
                 />
                 <label htmlFor="file-input" className="block cursor-pointer">
                   <span className="text-blue-600 hover:text-blue-700 font-medium">
-                    Pilih file
+                    Pilih file Excel
                   </span>
                   <span className="text-gray-600"> atau drag and drop</span>
                 </label>
@@ -170,7 +172,7 @@ export function ImportTransactionModal({
                   className="text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1 mx-auto"
                 >
                   <Download size={16} />
-                  Download Template CSV
+                  Download Template Excel
                 </button>
               </div>
 

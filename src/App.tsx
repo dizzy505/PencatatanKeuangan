@@ -184,25 +184,34 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="mb-8">
-          <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="sticky top-0 z-40 -mx-4 px-4 pt-4 pb-4 mb-6 bg-gradient-to-br from-blue-50/80 to-gray-100/80 backdrop-blur border-b border-gray-200">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <BookOpen size={32} className="text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-800">Pencatatan Keuangan</h1>
+              <div className="p-2 rounded-xl bg-white/80 shadow-sm border border-gray-200">
+                <BookOpen size={24} className="text-blue-600" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 leading-tight">
+                  Pencatatan Keuangan
+                </h1>
+                <p className="text-sm text-gray-600">
+                  Kelola pemasukan dan pengeluaran Anda dengan mudah
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-600">Masuk sebagai <strong>{user.username}</strong></span>
+
+            <div className="flex items-center justify-between sm:justify-end gap-3">
+              <div className="px-3 py-1.5 rounded-full bg-white/80 border border-gray-200 text-sm text-gray-700">
+                Masuk sebagai <strong className="font-semibold">{user.username}</strong>
+              </div>
               <button
                 onClick={handleLogout}
-                className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded-md"
+                className="px-4 py-2 text-sm font-medium bg-gray-900 hover:bg-gray-800 text-white rounded-lg shadow-sm transition-colors"
               >
                 Keluar
               </button>
             </div>
           </div>
-          <p className="text-gray-600 text-center">
-            Kelola pemasukan dan pengeluaran Anda dengan mudah
-          </p>
         </div>
 
         <div className="space-y-6">
@@ -220,10 +229,10 @@ function App() {
           <MonthlySummary transactions={filteredTransactions} />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 h-[720px]">
               <TransactionForm onSuccess={fetchTransactions} />
             </div>
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 h-[720px]">
               <TransactionList
                 transactions={filteredTransactions}
                 onDelete={handleDelete}

@@ -135,7 +135,7 @@ export const parseExcelFile = (file: File): Promise<ImportedRow[]> => {
 export const normalizeColumnName = (name: string): string => {
   const normalized = name.toLowerCase().trim().replace(/\s+/g, "_").replace(/[^\w]/g, "");
   
-  // Special mappings for Indonesian column names
+  // Exact mappings for the format in the image
   const columnMappings: Record<string, string> = {
     "tanggal": "tanggal",
     "jenis_transaksi": "jenis_transaksi",

@@ -104,7 +104,7 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white rounded-lg shadow-md p-6 space-y-4"
+      className="bg-white rounded-lg shadow-md p-6 space-y-4 h-full overflow-y-auto"
     >
       <h2 className="text-xl font-bold text-gray-800">Tambah Transaksi</h2>
 
