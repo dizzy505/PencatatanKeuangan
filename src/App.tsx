@@ -11,6 +11,8 @@ import { FilterPanel } from "./components/FilterPanel";
 import { StatisticsPanel } from "./components/StatisticsPanel";
 import { MonthlySummary } from "./components/MonthlySummary";
 import { CategoryBreakdown } from "./components/CategoryBreakdown";
+import { ExpenseTrendline } from "./components/ExpenseTrendline";
+import { FinancialHealthiness } from "./components/FinancialHealthiness";
 import { EditTransactionModal } from "./components/EditTransactionModal";
 import { ImportTransactionModal } from "./components/ImportTransactionModal";
 import { filterTransactions } from "./lib/utils.ts";
@@ -223,6 +225,10 @@ function App() {
           />
 
           <StatisticsPanel transactions={filteredTransactions} />
+
+          <FinancialHealthiness transactions={filteredTransactions} />
+
+          <ExpenseTrendline transactions={filteredTransactions} />
 
           <CategoryBreakdown transactions={filteredTransactions} />
 
