@@ -58,7 +58,7 @@ export function FinancialHealthiness({ transactions }: FinancialHealthinessProps
   const formatPercent = (value: number) => `${Math.round(value * 100)}%`;
 
   return (
-    <div className={`rounded-lg shadow-md p-6 border ${status.border} ${status.bg}`}>
+    <div className={`bg-white rounded-lg shadow-md p-6 border ${status.border}`}>
       <div className="flex items-center gap-2 mb-4">
         <HeartPulse size={24} className={status.color} />
         <h2 className="text-xl font-bold text-gray-800">Financial Healthiness</h2>
